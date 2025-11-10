@@ -1,6 +1,5 @@
 pipeline {
   agent any
-  
   stages {
     stage ("Check www.example.com response code") {
       steps{
@@ -18,29 +17,27 @@ pipeline {
         '''
       }
     }
-  }
-  
+  }  
   // 使用 withCredentials 隱藏收件人 Email
   post {
-      // 使用 withCredentials 引用 Secret text，並將其賦值給變數 RECIPIENT
-      withCredentials([string(credentialsId: 'email', variable: 'RECIPIENT')]) {
-          // 🚨 失敗通知
-          failure {
-              emailext (
-                  subject: "[🔥 FAILURE ALERT] ${env.JOB_NAME} - 網站連線錯誤！",
-                  body: "...", // 內容保持不變或自行調整
-                  to: "${RECIPIENT}" // 🌟 使用變數，腳本上傳 GitHub 時將是安全的
-              )
-          }
-          
-          // 🟢 成功通知
-          success {
-              emailext (
-                  subject: "[✅ SUCCESS] ${env.JOB_NAME} - 定時檢查成功",
-                  body: "項目 ${env.JOB_NAME} 網站檢查 (www.example.com) 成功，狀態碼為 200。",
-                  to: "${RECIPIENT}"
-              )
-          }
-      } // 關閉 withCredentials
-  } // 關閉 post
+    // 使用 withCredentials 引用 Secret text，並將其賦值給變數 RECIPIENT
+    withCredentials([string(credentialsId: 'email', variable: 'RECIPIENT')]) {
+      // 🚨 失敗通知
+      failure {
+        emailext (
+          subject: "[🔥 FAILURE ALERT] ${env.JOB_NAME} - 網站連線錯誤！",
+          body: "...", // 內容保持不變或自行調整
+          to: "${RECIPIENT}" // 🌟 使用變數，腳本上傳 GitHub 時將是安全的
+        )
+      }
+      // 🟢 成功通知
+      success {
+        emailext (
+          subject: "[✅ SUCCESS] ${env.JOB_NAME} - 定時檢查成功",
+          body: "項目 ${env.JOB_NAME} 網站檢查 (www.example.com) 成功，狀態碼為 200。",
+          to: "${RECIPIENT}"
+        )
+      }
+    }
+  }
 }
