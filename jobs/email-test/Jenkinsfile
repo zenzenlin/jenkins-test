@@ -1,41 +1,46 @@
 pipeline {
   agent any
   stages {
-    stage ("Check www.example.com response code") {
-      steps{
-        sh '''
-        # ... Stage 檢查邏輯與 exit 1 保持不變 ...
-        response_code=$(curl -o /dev/null -s -w "%{http_code}" www.example.com)
-        echo "www.example.com response code: ${response_code}"
-        if [ "${response_code}" != "200" ]; then
-          echo "錯誤：網站連線檢查失敗，狀態碼為 ${response_code}。中止建置。"
-          exit 1 // 讓 Stage 狀態變為 FAILED
-        fi
-        '''
+    stage ("Request website") {
+      steps {
+        script {
+          response_code = sh (
+            script: "curl -o /dev/null -s -w %{http_code} www.example.com",
+            returnStdout: true
+          ).toInteger()
+
+          echo "${response_code}"
+        }
+      }
+    }
+    stage ("Check response code") {
+      steps {
+        script {
+          if (response_code != 200) {
+            sh "false"
+          }
+        }
       }
     }
   }
   post {
-    // 🚨 失敗通知：條件
-    failure {
-      // 步驟：在 failure 條件成立時，載入憑證
-      withCredentials([string(credentialsId: 'email', variable: 'RECIPIENT')]) {
-        emailext (
-          subject: "[🔥 FAILURE ALERT] ${env.JOB_NAME} - 網站連線錯誤！",
-          body: "請檢查 Jenkins Build 紀錄 ${env.BUILD_URL} 以獲取詳細資訊。",
-          to: RECIPIENT
-        )
-      }
-    }
-    // 🟢 成功通知：條件
     success {
-      // 步驟：在 success 條件成立時，載入憑證
-      withCredentials([string(credentialsId: 'email', variable: 'RECIPIENT')]) {
-        emailext (
-          subject: "[✅ SUCCESS] ${env.JOB_NAME} - 定時檢查成功",
-          body: "項目 ${env.JOB_NAME} 網站檢查 (www.example.com) 成功，狀態碼為 200。詳情: ${env.BUILD_URL}",
-          to: RECIPIENT
-        )
+      echo "success"
+    }
+    // 在 failure 條件成立時，載入憑證寄送信件
+    failure {
+      script {
+        withCredentials([string(credentialsId: 'email', variable: 'ADDRESS')]) {
+          emailext (
+            subject: "[🔥 FAILURE ALERT] ${env.JOB_NAME} - 網站連線錯誤！",
+            body: "請檢查 Jenkins Build 紀錄 ${env.BUILD_URL} 以獲取詳細資訊。",
+            to: RECIPIENT
+          )
+          sh '''
+              message="www.example.com response code != 200."
+              curl -X GET https://api.telegram.org/bot${TOKEN}/sendMessage -d "chat_id=${GROUP_ID}&text=${message}"
+          '''
+        }
       }
     }
   }
