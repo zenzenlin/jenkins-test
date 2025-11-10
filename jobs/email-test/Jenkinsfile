@@ -23,7 +23,7 @@ pipeline {
         emailext (
           subject: "[🔥 FAILURE ALERT] ${env.JOB_NAME} - 網站連線錯誤！",
           body: "請檢查 Jenkins Build 紀錄 ${env.BUILD_URL} 以獲取詳細資訊。",
-          to: "${RECIPIENT}"
+          to: RECIPIENT
         )
       }
     }
@@ -34,7 +34,7 @@ pipeline {
         emailext (
           subject: "[✅ SUCCESS] ${env.JOB_NAME} - 定時檢查成功",
           body: "項目 ${env.JOB_NAME} 網站檢查 (www.example.com) 成功，狀態碼為 200。詳情: ${env.BUILD_URL}",
-          to: "${RECIPIENT}"
+          to: RECIPIENT
         )
       }
     }
