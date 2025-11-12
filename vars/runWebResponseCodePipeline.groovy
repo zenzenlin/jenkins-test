@@ -27,6 +27,17 @@ def call(Map pipelineParams) {
     post {
       success {
         echo "success"
+        withCredentials([string(credentialsId: 'email', variable: 'ADDRESS')]) {
+          emailext (
+            subject: "[🔥 FAILURE ALERT] ${env.JOB_NAME} - 網站連線錯誤！",
+            body: "請檢查 Jenkins Build 紀錄 ${env.BUILD_URL} 以獲取詳細資訊。",
+            to: ADDRESS
+          )
+          sh '''
+              message="www.example.com response code === 200."
+              ${message}
+          '''
+        }
       }
       failure {
         script {
