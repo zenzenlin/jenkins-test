@@ -1,13 +1,3 @@
-library 'using-libraries'
+library 'using-library'
 
-pipeline {
-  agent any
-  stages{
-    stage('test library'){
-      steps{
-        sample('Jenkins')
-        sample('Mike')
-      }
-    }
-  }
-}
+runWebResponseCodePipeline(domain: 'www.example.com', code: 200)

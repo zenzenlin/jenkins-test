@@ -1,6 +1,8 @@
 pipeline {
-  agent any // 不指定執行 agent
-  stages { // 開始宣告 Pipeline 流程
+  // 不指定執行 agent
+  agent any
+  // 開始宣告 Pipeline 流程
+  stages {
     stage('jenkins-test sample-job pipeline') {
       // 行為宣告
       steps {
